@@ -1,5 +1,7 @@
 # Ayla Noor — Photographer Portfolio
 
+Live: https://mowais2004.github.io/Ayla-Noor/
+
 A single-page portfolio where every series is a magazine. Scroll through an endless 3D stack of album sleeves; open one and it flies to centre, swings open on its spine, and lands as a two-page spread.
 
 **No framework. No build step. No dependencies.** 57 KB of code, 18 KB gzipped.
