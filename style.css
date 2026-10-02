@@ -1,0 +1,262 @@
+/* ===========================================================================
+   Ayla Noor — Photographer
+   Stylesheet. Sections, in order:
+     1. Theme tokens      5. Album stack
+     2. Base              6. Sheets (shared)
+     3. Loader            7. Series spread / About / Index
+     4. Chrome            8. Responsive + motion preferences
+   =========================================================================== */
+
+/* ---------- 1. theme tokens ---------- */
+:root {
+  --bg-top: #eef1f5; --bg-bottom: #d5dce4;
+  --fg: #111214; --muted: #6e6e73; --line: rgba(17,18,20,.1);
+  --glass: rgba(255,255,255,.72); --glass-edge: inset 0 0 0 1px rgba(255,255,255,.9), 0 8px 28px rgba(40,52,70,.12);
+  --hover: rgba(17,18,20,.06); --ind: #fff; --ind-shadow: 0 1px 6px rgba(0,0,0,.1);
+  --tip-bg: #111214; --tip-fg: #fff;
+  --sheet: #eef1f5;
+  --paper: #f5f1ea; --ink: #161513; --ink-muted: #7a756c;
+  --ld-bg: #f5f1ea;
+  --ok: #34c759;
+  --ease: cubic-bezier(.7,0,.2,1);     /* decisive: fast out, settled in   */
+  --out: cubic-bezier(.2,.8,.2,1);     /* soft landing for small UI moves  */
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --bg-top: #1b1c20; --bg-bottom: #0a0a0c;
+  --fg: #f4f4f2; --muted: #8e8e93; --line: rgba(255,255,255,.1);
+  --glass: rgba(44,44,48,.6); --glass-edge: inset 0 0 0 1px rgba(255,255,255,.08), 0 8px 28px rgba(0,0,0,.35);
+  --hover: rgba(255,255,255,.08); --ind: rgba(255,255,255,.16); --ind-shadow: none;
+  --tip-bg: #f4f4f2; --tip-fg: #111214;
+  --sheet: #0f0f11;
+  --paper: #181715; --ink: #ece7de; --ink-muted: #8f897f;
+  --ld-bg: #0e0d0c;
+  color-scheme: dark;
+}
+
+/* ---------- 2. base ---------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }          /* the stack is the page; nothing scrolls behind it */
+body {
+  color: var(--fg); font: 14px/1.45 Inter, system-ui, sans-serif; letter-spacing: -.006em;
+  -webkit-font-smoothing: antialiased; font-feature-settings: "ss01", "cv11";
+  background: radial-gradient(130% 80% at 50% 0%, var(--bg-top), var(--bg-bottom));
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; }
+img { display: block; }
+.glass { background: var(--glass); backdrop-filter: blur(24px) saturate(1.6); -webkit-backdrop-filter: blur(24px) saturate(1.6); box-shadow: var(--glass-edge); }
+.caps { font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; }
+.noscript { position: fixed; inset: auto 0 0; padding: 14px 20px; background: var(--fg); color: var(--sheet); text-align: center; }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+
+/* ---------- 3. loader ---------- */
+/* A magazine opens, thumbs through the series while the photos load, closes,
+   then lies back into the album stack. --P is one page, set from script.js. */
+#loader { position: fixed; inset: 0; z-index: 5000; overflow: hidden; }
+.ld-bg { position: absolute; inset: 0; background: var(--ld-bg); }
+.ld-book { position: absolute; left: 50%; top: 50%; width: calc(var(--P) * 2); height: var(--P); transform: translate(-50%, -50%); }
+.ldp, .ld-front, .ld-back { position: absolute; top: 0; width: var(--P); height: var(--P); overflow: hidden; backface-visibility: hidden; visibility: hidden; }
+.ldp.l, .ld-back { left: 0; transform-origin: 100% 50%; }       /* left page + the leaf landing on it */
+.ldp.r, .ld-front { left: var(--P); transform-origin: 0 50%; }  /* right page + the leaf lifting off it */
+.ld-cover { visibility: hidden; transform-origin: 0 50%; }
+.paper { background: var(--paper); color: var(--ink); padding: calc(var(--P) * .075); display: flex; flex-direction: column; justify-content: space-between; box-shadow: -30px 40px 80px -40px rgba(0,0,0,.35); }
+.paper::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(270deg, rgba(0,0,0,.13), transparent 9%); }  /* gutter shadow */
+.shot img { width: 100%; height: 100%; object-fit: cover; }
+.shot::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.32), transparent 7%); }
+.ld-num { display: flex; align-items: flex-start; font-size: calc(var(--P) * .3); font-weight: 700; letter-spacing: -.07em; line-height: .8; font-variant-numeric: tabular-nums; }
+.ld-num sup { font-size: .22em; font-weight: 500; letter-spacing: 0; margin: .1em 0 0 .25em; color: var(--ink-muted); }
+.ld-cap { margin-top: calc(var(--P) * .05); color: var(--ink-muted); font-size: max(8px, calc(var(--P) * .019)); }
+
+/* ---------- 4. chrome ---------- */
+.top { position: fixed; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; pointer-events: none; }
+.top > * { pointer-events: auto; }
+.circle { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; transition: transform .4s var(--out); }
+.circle:hover { transform: scale(1.06); }
+.circle img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.circle svg { width: 20px; height: 20px; }
+[data-theme="light"] .i-sun, [data-theme="dark"] .i-moon { display: none; }
+.seg { position: relative; display: flex; padding: 4px; border-radius: 999px; }
+.seg .ind { position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 999px; background: var(--ind); box-shadow: var(--ind-shadow); transition: transform .5s var(--out), width .5s var(--out); }
+.seg button { position: relative; min-width: 96px; padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); transition: color .3s; }
+.seg button[aria-pressed="true"] { color: var(--fg); }
+
+.dock { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 1000; display: flex; align-items: center; gap: 2px; padding: 5px; border-radius: 999px; }
+.dock > button:not(.now) { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; transition: background .25s; }
+.dock > button:not(.now):hover { background: var(--hover); }
+.dock svg { width: 18px; height: 18px; }
+.now { width: min(52vw, 240px); height: 40px; border-radius: 999px; overflow: hidden; text-align: center; display: grid; align-content: center; padding: 0 8px; transition: background .25s; }
+.now:hover { background: var(--hover); }
+.now b, .now span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.now b { font-size: 13px; font-weight: 600; line-height: 1.2; }
+.now span { font-size: 11.5px; color: var(--muted); line-height: 1.25; }
+
+/* tooltip pills */
+[data-tip] { position: relative; }
+[data-tip]::after {
+  content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 12px); z-index: 5; pointer-events: none;
+  padding: 6px 11px; border-radius: 999px; background: var(--tip-bg); color: var(--tip-fg);
+  font: 500 12px/1 Inter, sans-serif; white-space: nowrap; letter-spacing: 0;
+  opacity: 0; transform: translate(-50%, 6px) scale(.85); filter: blur(3px);
+  transition: opacity .2s, transform .4s var(--out), filter .4s var(--out);
+}
+.top [data-tip]::after { bottom: auto; top: calc(100% + 12px); transform: translate(-50%, -6px) scale(.85); }
+[data-tip]:hover::after, [data-tip]:focus-visible::after { opacity: 1; transform: translate(-50%, 0) scale(1); filter: none; }
+.top > .circle:first-child::after { left: 0; transform: translate(0, -6px) scale(.85); transform-origin: left top; }       /* corner pills stay on screen */
+.top > .circle:last-child::after { left: auto; right: 0; transform: translate(0, -6px) scale(.85); transform-origin: right top; }
+.top > .circle:hover::after { transform: none; }
+
+/* ---------- 5. album stack ---------- */
+/* Each album is two sibling elements (cover + edge), each with its own full 3D
+   transform — no nested preserve-3d, so it renders the same in every browser. */
+.stage {
+  position: fixed; inset: 0; perspective: 1000px; touch-action: none;
+  -webkit-mask-image: linear-gradient(transparent 40px, #000 130px, #000 calc(100% - 130px), transparent calc(100% - 40px));
+  mask-image: linear-gradient(transparent 40px, #000 130px, #000 calc(100% - 130px), transparent calc(100% - 40px));
+}
+.cover, .edge { position: absolute; left: 50%; top: 50%; width: var(--w); backface-visibility: hidden; cursor: pointer; user-select: none; }
+.cover {
+  height: var(--w); margin: calc(var(--w) / -2) 0 0 calc(var(--w) / -2);
+  background: var(--s) var(--img) center / cover; border-radius: 2px; outline: none;
+  box-shadow: 0 40px 50px -30px rgba(0,0,0,.45);
+}
+/* lighting: hinge shadow + sheen at the edge, falling into shade as the album
+   tilts away. --shade is written per frame by script.js. */
+.cover::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.35) 0, rgba(255,255,255,.14) 2.5%, transparent 12%, transparent 35%, rgba(0,0,0,var(--shade, 0)) 100%),
+    linear-gradient(100deg, transparent 30%, rgba(255,255,255,calc(var(--shade, 0) * .35)) 50%, transparent 70%);
+}
+.cover.r::after { transform: scaleY(-1); }               /* albums below centre hinge the other way */
+.cover:focus-visible { box-shadow: 0 0 0 3px var(--fg); }
+/* edge = magazine spine label: issue no. | TITLE ......... genre — ’yy */
+.edge {
+  height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--w) / -2);
+  display: flex; align-items: center; gap: 1.1em; padding: 0 1.4em;
+  background: var(--s); color: var(--sf); border-radius: 1px;
+  font-size: max(9px, calc(var(--d) * .38)); line-height: 1; letter-spacing: .16em; text-transform: uppercase;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 -1px 0 rgba(0,0,0,.2);
+}
+.edge i { font-style: normal; font-weight: 500; letter-spacing: .04em; font-variant-numeric: tabular-nums; opacity: .55; padding-right: 1.1em; border-right: 1px solid color-mix(in srgb, currentColor 30%, transparent); }
+.edge b { flex: 1; font-weight: 600; white-space: nowrap; }
+.edge span { font-weight: 500; opacity: .6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- 6. sheets (series / about / index share this) ---------- */
+dialog.sheet { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; color: var(--fg); overflow: hidden; }
+dialog.sheet::backdrop { background: transparent; }
+.x { position: absolute; top: 16px; right: 16px; z-index: 10; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; }
+.x svg { width: 18px; height: 18px; transition: transform .5s var(--out); }
+.x:hover svg { transform: rotate(90deg); }
+.eyebrow { font-size: 12px; font-weight: 500; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 999px; background: var(--fg); color: var(--sheet); font-weight: 600; font-size: 14px; transition: transform .4s var(--out); }
+.pill:hover { transform: scale(1.04); }
+.pill b { font-weight: 600; transition: transform .4s var(--out); }
+.pill:hover b { transform: translate(2px, -2px); }
+
+/* staggered reveals: .rv fades a block up, .split lifts a headline letter by letter */
+.rv { opacity: 0; }
+.in .rv { animation: rise .8s var(--out) both; animation-delay: calc(.25s + var(--i, 0) * 60ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.split .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .08em; margin-bottom: -.08em; }
+.split .ch { display: inline-block; transform: translateY(110%); }
+.in .split .ch { animation: chUp .9s var(--out) both; animation-delay: calc(var(--d0, .15s) + var(--i) * 20ms); }
+@keyframes chUp { to { transform: none; } }
+/* safety net: if the animation clock was paused (backgrounded tab), never leave copy invisible */
+.shown .rv, .shown .split .ch { animation: none; opacity: 1; transform: none; }
+
+/* ---------- 7a. series: the album becomes a magazine that opens into a spread ---------- */
+.d-bg { position: absolute; inset: 0; background: color-mix(in srgb, var(--tint, #888) 20%, var(--sheet)); }
+.book {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: grid; grid-template-columns: var(--P) var(--P); grid-template-rows: var(--P);
+}
+.book.v { grid-template-columns: var(--P); grid-template-rows: var(--P) var(--P); }   /* phones: pages stack */
+.page { position: relative; overflow: hidden; }
+.book.v .page.photo { order: -1; }
+.page.photo img, .leaf img { width: 100%; height: 100%; object-fit: cover; }
+.page.photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.32), transparent 7%); }
+.book.v .page.photo::after { background: linear-gradient(0deg, rgba(0,0,0,.32), transparent 7%); }
+.page.photo figcaption { position: absolute; left: calc(var(--P) * .05); bottom: calc(var(--P) * .045); color: #fff; font-size: max(9px, calc(var(--P) * .017)); text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+
+.page.text {
+  background: var(--paper); color: var(--ink); padding: calc(var(--P) * .075);
+  display: flex; flex-direction: column; transform-origin: 100% 50%;
+  box-shadow: -30px 40px 80px -40px rgba(0,0,0,.4);
+}
+.book.v .page.text { transform-origin: 50% 0; }
+.page.text::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(270deg, rgba(0,0,0,.13), transparent 9%); }
+.book.v .page.text::after { background: linear-gradient(180deg, rgba(0,0,0,.13), transparent 9%); }
+.pg-head, .pg-foot { display: flex; justify-content: space-between; gap: 12px; color: var(--ink-muted); font-size: max(9px, calc(var(--P) * .017)); }
+.pg-head { padding-bottom: 1em; border-bottom: 1px solid color-mix(in srgb, var(--ink) 14%, transparent); }
+.pg-body { margin: auto 0; }
+.pg-title { font-size: calc(var(--P) * .12); font-weight: 700; letter-spacing: -.055em; line-height: .95; margin-bottom: calc(var(--P) * .035); }
+.pg-dek { font-size: max(12px, calc(var(--P) * .026)); line-height: 1.5; letter-spacing: -.01em; max-width: 36ch; opacity: .82; }
+.pg-meta { display: grid; grid-template-columns: auto 1fr; margin: calc(var(--P) * .045) 0 calc(var(--P) * .04); font-size: max(11px, calc(var(--P) * .021)); }
+.pg-meta dt, .pg-meta dd { padding: .55em 0; border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
+.pg-meta dt { color: var(--ink-muted); padding-right: 2em; }
+.pg-link { align-self: flex-start; font-size: max(12px, calc(var(--P) * .024)); font-weight: 600; padding-bottom: 2px; border-bottom: 1px solid currentColor; }
+
+/* the cover leaf: photo + masthead, hinged on the spine */
+.leaf { position: absolute; top: 0; left: var(--P); width: var(--P); height: var(--P); overflow: hidden; background: #222; backface-visibility: hidden; box-shadow: 0 50px 100px -30px rgba(0,0,0,.5); }
+.book.v .leaf { left: 0; }
+.leaf::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(0,0,0,.45), transparent 32%, transparent 58%, rgba(0,0,0,.55)), linear-gradient(90deg, rgba(0,0,0,.28), transparent 5%); }
+.lf-mast, .lf-foot { position: absolute; z-index: 2; left: calc(var(--P) * .065); right: calc(var(--P) * .065); color: #fff; }
+.lf-mast { top: calc(var(--P) * .055); }
+.lf-mast b { display: block; font-size: calc(var(--P) * .142); font-weight: 800; letter-spacing: -.06em; line-height: .82; text-transform: uppercase; }
+.lf-mast span { display: flex; justify-content: space-between; margin-top: 1.1em; font-size: max(8px, calc(var(--P) * .017)); opacity: .9; }
+.lf-mast em { font-style: normal; }
+.lf-foot { bottom: calc(var(--P) * .06); }
+.lf-foot b { display: block; font-size: calc(var(--P) * .075); font-weight: 700; letter-spacing: -.045em; line-height: 1; }
+.lf-foot span { display: block; margin-top: .9em; font-size: max(8px, calc(var(--P) * .018)); opacity: .85; }
+
+/* ---------- 7b. about ---------- */
+#about { background: var(--sheet); }
+.ab-wrap { height: 100%; overflow: auto; display: grid; grid-template-columns: minmax(220px, 380px) minmax(0, 1fr); gap: clamp(32px, 6vw, 100px); align-items: center; padding: 96px clamp(20px, 7vw, 120px) 60px; }
+.ab-photo { position: relative; }
+.ab-photo img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 4px; }
+.status { position: absolute; left: 12px; bottom: 12px; display: flex; align-items: center; gap: 8px; padding: 7px 12px 7px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52,199,89,.6); } 70%, 100% { box-shadow: 0 0 0 8px rgba(52,199,89,0); } }
+.ab-lead { font-size: clamp(26px, 3vw, 44px); font-weight: 600; line-height: 1.12; letter-spacing: -.035em; margin: 14px 0 44px; max-width: 24ch; }
+.ab-lead .mute { color: var(--muted); }
+.ab-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-bottom: 44px; }
+.ab-cols h4 { font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 8px; }
+.ab-cols li { padding: 8px 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 8px; }
+.ab-cols small { color: var(--muted); font-size: 12px; }
+.ab-contact { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ab-contact .ghost { padding: 12px 18px; border-radius: 999px; background: var(--hover); font-weight: 500; transition: background .3s; }
+.ab-contact .ghost:hover { background: var(--line); }
+
+/* ---------- 7c. index ---------- */
+#index { background: var(--sheet); }
+.i-wrap { height: 100%; overflow: auto; padding: 88px clamp(20px, 7vw, 120px) 60px; }
+.i-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding-bottom: 18px; }
+.i-head h2 { font-size: clamp(48px, 8vw, 120px); font-weight: 700; line-height: .9; letter-spacing: -.06em; }
+.i-head h2 sup { font-size: .2em; font-weight: 500; color: var(--muted); letter-spacing: 0; vertical-align: top; margin-left: 8px; }
+.i-list button { width: 100%; text-align: left; display: grid; grid-template-columns: 44px 14px minmax(0, 1.3fr) minmax(0, 1fr) 56px; gap: 16px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); transition: opacity .35s; }
+.i-list:has(button:hover) button:not(:hover) { opacity: .35; }
+.i-list .n, .i-list .y { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.i-list .sw { width: 12px; height: 12px; border-radius: 3px; background: var(--s); }    /* the series' edge colour */
+.i-list .t { font-size: clamp(22px, 2.6vw, 36px); font-weight: 600; letter-spacing: -.035em; transition: transform .5s var(--out); }
+.i-list button:hover .t { transform: translateX(10px); }
+.i-list .g { color: var(--muted); }
+.i-list .y { text-align: right; }
+.in .i-list li { animation: rise .7s var(--out) both; animation-delay: calc(.3s + var(--i) * 40ms); }
+.preview { position: fixed; left: 0; top: 0; width: 240px; height: 240px; z-index: 5; pointer-events: none; border-radius: 4px; overflow: hidden; opacity: 0; transition: opacity .3s; box-shadow: 0 24px 60px rgba(0,0,0,.25); }
+.preview.on { opacity: 1; }
+.preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; clip-path: inset(100% 0 0 0); transform: scale(1.25); transition: clip-path .6s var(--ease), transform .9s var(--out); }
+.preview img.on { clip-path: inset(0); transform: none; z-index: 1; }
+
+/* ---------- 8. responsive + motion preferences ---------- */
+@media (max-width: 760px) {
+  .ab-wrap { grid-template-columns: 1fr; align-items: start; }
+  .ab-photo { max-width: 240px; }
+  .ab-cols { grid-template-columns: 1fr; }
+  .i-list button { grid-template-columns: 32px 12px 1fr; }
+  .i-list .g, .i-list .y { display: none; }
+  .seg button { min-width: 0; }
+}
+@media (hover: none) { .preview { display: none; } [data-tip]::after { display: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; } }
